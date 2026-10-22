@@ -144,7 +144,7 @@ public class World
         foreach (var d in _dirtDots)
         {
             if (d.X < left || d.X > left + w) continue;
-            DrawCircleV(new Vector2(d.X, d.Y), d.R, new Color(60, 40, 22, d.A));
+            DrawCircleV(new Vector2(d.X, d.Y), d.R, new Color(60, 40, 22, (int)d.A));
         }
         foreach (var s in _stones)
         {
