@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pousse ! — aperçu jouable (version web du .exe)</title>
+<link rel="icon" type="image/png" href="../assets/favicon.png">
+<style>
+  :root{ --ink:#26402c; --green:#3da85a; --green-d:#2f8f4a; --orange:#ff7a45; --card:#ffffff; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:"Segoe UI",system-ui,-apple-system,sans-serif; color:var(--ink);
+    background:linear-gradient(180deg,#79c7f2 0%,#cdeffb 46%,#e9fadf 78%,#bfe8c4 100%); min-height:100vh; }
+  .wrap{ max-width:1060px; margin:0 auto; padding:22px 16px 48px; }
+  header{ display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+  header img{ width:96px; height:96px; border-radius:24px; box-shadow:0 10px 28px rgba(38,64,44,.25); background:#fff; }
+  h1{ margin:0; font-size:44px; letter-spacing:.5px; }
+  h1 .v{ font-size:15px; vertical-align:top; background:var(--green); color:#fff; border-radius:999px; padding:3px 10px; margin-left:8px;}
+  .sub{ margin:4px 0 0; opacity:.82; font-size:17px; }
+  .stage{ position:relative; margin-top:18px; border-radius:18px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(38,64,44,.35); border:4px solid rgba(255,255,255,.75); background:#60b7f2; }
+  canvas{ display:block; width:100%; aspect-ratio:16/9; touch-action:none; }
+  .touch{ position:absolute; inset:auto 0 0 0; display:none; justify-content:space-between; padding:10px; pointer-events:none; }
+  .touch .grp{ display:flex; gap:10px; }
+  .tbtn{ pointer-events:auto; width:62px; height:62px; border-radius:50%; border:2px solid rgba(255,255,255,.8);
+    background:rgba(38,64,44,.38); color:#fff; font-size:26px; display:flex; align-items:center; justify-content:center;
+    user-select:none; -webkit-user-select:none; }
+  .tbtn:active{ background:rgba(38,64,44,.65); }
+  @media (pointer:coarse){ .touch{ display:flex; } }
+  .row{ display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; }
+  .btn{ display:inline-flex; align-items:center; gap:9px; text-decoration:none; font-weight:700; font-size:16.5px;
+    padding:13px 20px; border-radius:13px; transition:transform .08s ease, box-shadow .08s ease; }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn-main{ background:var(--orange); color:#fff; box-shadow:0 8px 20px rgba(240,92,46,.4); }
+  .btn-exe{ background:var(--green); color:#fff; box-shadow:0 8px 20px rgba(61,168,90,.4); }
+  .btn-ghost{ background:rgba(255,255,255,.85); color:var(--ink); box-shadow:0 8px 20px rgba(38,64,44,.15); }
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin-top:16px; }
+  .card{ background:var(--card); border-radius:16px; padding:16px 18px; box-shadow:0 8px 24px rgba(38,64,44,.12); }
+  .card h3{ margin:0 0 8px; font-size:17px; }
+  .card p,.card li{ font-size:14.5px; margin:0; line-height:1.55; opacity:.92; }
+  .card ul{ margin:0; padding-left:18px; }
+  kbd{ background:#eef4ee; border:1px solid #cfe0cf; border-bottom-width:3px; border-radius:6px; padding:1px 7px; font-family:inherit; font-weight:700; font-size:12.5px; }
+  .note{ margin-top:16px; text-align:center; font-size:13.5px; opacity:.75; }
+  footer{ margin-top:26px; text-align:center; font-size:13px; opacity:.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="../assets/favicon.png" alt="Logo Pousse !">
+    <div>
+      <h1>POUSSE !<span class="v">v0.1.0</span></h1>
+      <p class="sub">Petit platformer en <b>C# (Raylib)</b> pour PC — un seul <b>.exe</b>, avec <b>installeur + mises à jour automatiques depuis GitHub</b>.<br>
+      Ci-dessous : l'aperçu web, jumeau exact du jeu .exe (mêmes animations), pour tester tout de suite.</p>
+    </div>
+  </header>
+
+  <div class="stage">
+    <canvas id="game" width="1280" height="720" tabindex="0" aria-label="Jeu Pousse"></canvas>
+    <div class="touch">
+      <div class="grp"><div class="tbtn" id="tL">◀</div><div class="tbtn" id="tR">▶</div></div>
+      <div class="grp"><div class="tbtn" id="tJ">▲</div></div>
+    </div>
+  </div>
+  <p class="note">Clique dans le jeu puis : <kbd>←</kbd><kbd>→</kbd> ou <kbd>Q</kbd><kbd>D</kbd> bouger · <kbd>Espace</kbd> / <kbd>Z</kbd> sauter (relâche tôt = petit saut) · <kbd>Maj</kbd> courir. Va toucher le drapeau tout à droite ! 🚩</p>
+
+  <div class="row">
+    <a class="btn btn-main" href="https://github.com/Snowoo-2z/gameexe/releases/latest/download/Installer.bat">⬇️ Installer.bat — installer le jeu sur Windows</a>
+    <a class="btn btn-exe" href="https://github.com/Snowoo-2z/gameexe/releases/latest/download/GameExe.exe">🎮 GameExe.exe direct</a>
+    <a class="btn btn-ghost" href="https://github.com/Snowoo-2z/gameexe/releases/latest">📦 Toutes les versions</a>
+    <a class="btn btn-ghost" href="https://github.com/Snowoo-2z/gameexe">💻 Code source</a>
+  </div>
+
+  <div class="cards">
+    <div class="card"><h3>🖥️ Installation (1 double-clic)</h3>
+      <p><b>Installer.bat</b> télécharge la dernière version depuis GitHub, l'installe dans ton dossier utilisateur (aucun droit admin), crée un raccourci sur le Bureau + menu Démarrer, et Lance le jeu.</p></div>
+    <div class="card"><h3>🔄 Mises à jour 100 % auto</h3>
+      <ul><li>Le jeu vérifie GitHub à chaque démarrage : si une version plus récente existe, il la télécharge et propose <kbd>Entrée</kbd> pour l'appliquer (remplacement + relancement automatiques).</li>
+      <li>Ou relance simplement <b>Installer.bat</b> : il met à jour si besoin.</li></ul></div>
+    <div class="card"><h3>🌱 Sortir une nouvelle version</h3>
+      <p>Change le numéro dans <b>version.txt</b>, pousse sur <b>main</b> : GitHub Actions fabrique le <b>.exe</b> et publie la Release tout seul. Tous les joueurs sont mis à jour au prochain lancement.</p></div>
+  </div>
+
+  <footer>Pousse ! v0.1.0 — C# · Raylib · GitHub Actions — sol d'herbe animé &amp; perso en squash &amp; stretch, 100 % dessiné en code.</footer>
+</div>
+
+<script>
+"use strict";
+// =====================================================================
+// POUSSE ! - apercu web. Meme code de jeu que la version C#/Raylib
+// (src/GameExe) : memes constantes, memes animations procedurales.
+// =====================================================================
+const cv = document.getElementById('game'), ctx = cv.getContext('2d');
+const VW = 1280, VH = 720, WORLD_W = 3200, GROUND = 560;
+
+// --- utilitaires (miroir de Utils.cs) ---
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,m,M)=>v<m?m:v>M?M:v;
+const moveToward=(v,t,d)=>v<t?Math.min(v+d,t):Math.max(v-d,t);
+const damp=(a,b,s,dt)=>lerp(a,b,1-Math.exp(-s*dt));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const mod=(v,m)=>((v%m)+m)%m;
+function spring(o,target,k,c,dt){ o.v+=(-k*(o.x-target)-c*o.v)*dt; o.x+=o.v*dt; }
+
+// --- palette ---
+const C = { skyT:'#60b7f2', skyB:'#d6f3ff', hillsFar:'#9ed6a5', hillsNear:'#6ec476',
+  grassT:'#60cd6e', grassB:'#36a854', bladeD:[47,150,74], bladeL:[133,224,143],
+  dirtT:'#9a6b43', dirtB:'#68462a', body:'#fff3d9', bodyShade:'#f7dfb4', belly:'#fffbf0',
+  boot:'#7c4a2d', bootD:'#633921', scarf:'#ff7a45', scarfD:'#f05c2e', leaf:'#4cc36b', leafD:'#35a553', eye:'#33261a' };
+const FLOWER_COLS=['#ff7aa5','#ffd166','#ffffff','#ba94ff','#ff8a65'];
+const mix=(c1,c2,t)=>`rgb(${c1.map((v,i)=>Math.round(lerp(v,c2[i],t))).join(',')})`;
+
+// --- generation du decor (graine fixe) ---
+const rng = mulberry32(1234), R=(a,b)=>a+rng()*(b-a);
+const bladesBack=[], bladesFront=[], flowers=[], dirtDots=[], stones=[], clouds=[], trees=[], pollen=[];
+for(let x=2;x<WORLD_W;x+=R(5,9)) bladesBack.push({x,baseY:GROUND+R(0,5),h:R(11,22),ph:R(0,6.28),sh:R(0,.45),th:2.2});
+for(let x=4;x<WORLD_W;x+=R(6,11)) bladesFront.push({x,baseY:GROUND+R(6,15),h:R(16,32),ph:R(0,6.28),sh:R(.35,1),th:3});
+for(let i=0;i<52;i++) flowers.push({x:R(30,WORLD_W-30),s:R(2.6,4.2),ph:R(0,6.28),c:(rng()*FLOWER_COLS.length)|0});
+for(let i=0;i<300;i++) dirtDots.push({x:R(0,WORLD_W),y:R(GROUND+26,VH-6),r:R(1.5,4),a:R(.11,.31)});
+for(let i=0;i<34;i++) stones.push({x:R(20,WORLD_W-20),y:R(GROUND+34,VH-16),rx:R(7,15),ry:R(4.5,8)});
+for(let i=0;i<9;i++) clouds.push({x:R(0,2400),y:R(45,190),s:R(.7,1.5),sp:R(4,11)});
+for(let i=0;i<14;i++) trees.push({x:R(0,2600),s:R(.7,1.3)});
+for(let i=0;i<42;i++) pollen.push({x:R(0,WORLD_W),y:R(GROUND-260,GROUND-24),ph:R(0,6.28),sp:R(.5,1.4)});
+const mushrooms=[520,1480,2310,2890];
+const butterflies=[{bx:700,ph:0,c:'#ff965a'},{bx:1750,ph:2.4,c:'#aa8cff'},{bx:2600,ph:4.6,c:'#6ec8ff'}];
+const gust=(t,x)=>{const s=Math.max(0,Math.sin(t*.6-x*.006));return s*s*s*7;};
+
+// --- particules ---
+const parts=[], rings=[]; const prng=mulberry32(9876), PR=(a,b)=>a+prng()*(b-a);
+function dust(x,y,n,spread=60,bvx=0){for(let i=0;i<n;i++)parts.push({k:0,x:x+PR(-8,8),y:y+PR(-3,2),vx:bvx+PR(-spread,spread),vy:PR(-55,-8),l:0,ml:PR(.35,.7),s:PR(3,6.5),g:-30});}
+function grassBits(x,y,n){for(let i=0;i<n;i++)parts.push({k:1,x:x+PR(-10,10),y:y-2,vx:PR(-120,120),vy:PR(-260,-120),l:0,ml:PR(.5,.9),s:PR(5,9),g:620,rot:PR(0,6.28),rv:PR(-12,12),c:mix([52,160,82],[126,217,140],prng())});}
+function ringFx(x,y,st=1){rings.push({x,y:y+6,l:0,ml:.32,mr:42*st});}
+function updateFx(dt){
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.l+=dt;if(p.l>=p.ml){parts.splice(i,1);continue;}
+    p.vy+=p.g*dt;p.vx*=(1-2.2*dt);p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.rot!==undefined)p.rot+=p.rv*dt;}
+  for(let i=rings.length-1;i>=0;i--){rings[i].l+=dt;if(rings[i].l>=rings[i].ml)rings.splice(i,1);}
+}
+function drawFx(){
+  for(const r of rings){const t=r.l/r.ml,rad=lerp(8,r.mr,1-(1-t)*(1-t));
+    ctx.strokeStyle=`rgba(240,226,190,${(1-t)*.55})`;ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(r.x,r.y,rad,rad*.28,0,0,6.284);ctx.stroke();}
+  for(const p of parts){const t=p.l/p.ml;
+    if(p.k===0){ctx.fillStyle=`rgba(232,214,175,${(1-t)*.5})`;ctx.beginPath();ctx.arc(p.x,p.y,p.s*(1+t*1.6),0,6.284);ctx.fill();}
+    else{ctx.strokeStyle=p.c;ctx.globalAlpha=1-t;ctx.lineWidth=2.5;ctx.lineCap='round';ctx.beginPath();
+      const dx=Math.cos(p.rot)*p.s*.5,dy=Math.sin(p.rot)*p.s*.5;ctx.moveTo(p.x-dx,p.y-dy);ctx.lineTo(p.x+dx,p.y+dy);ctx.stroke();ctx.globalAlpha=1;}}
+}
+
+// --- joueur (miroir de Player.cs) ---
+const P = { x:320, y:GROUND, vx:0, vy:0, facing:1, ground:true, was:true, coyote:0, jbuf:0,
+  runPh:0, idle:0, sx:{x:1,v:0}, sy:{x:1,v:0}, leaf:{x:0,v:0}, blinkT:2.2, blink:0, dustT:0 };
+const keys={};
+let jp=false, jr=false; // appui / relachement du saut ce frame
+function isLeft(){return keys.ArrowLeft||keys.KeyA||keys.KeyQ||touch.L;}
+function isRight(){return keys.ArrowRight||keys.KeyD||touch.R;}
+function isRun(){return keys.ShiftLeft||keys.ShiftRight;}
+function updatePlayer(dt,t){
+  const input=(isRight()?1:0)-(isLeft()?1:0), maxS=isRun()?415:270;
+  if(P.ground&&input!==0&&Math.sign(P.vx)===-input&&Math.abs(P.vx)>230){P.dustT-=dt*4;if(P.dustT<=0){dust(P.x,P.y-2,2,40,P.vx*.25);P.dustT=.05;}}
+  const acc=P.ground?(input===0?3600:3000):1900;
+  P.vx=moveToward(P.vx,input*maxS,acc*dt); if(input!==0)P.facing=input;
+  if(jp)P.jbuf=.12; else P.jbuf-=dt;
+  if(P.ground)P.coyote=.10; else P.coyote-=dt;
+  if(P.jbuf>0&&P.coyote>0){P.vy=-865;P.ground=false;P.coyote=0;P.jbuf=0;P.sx.x=.8;P.sy.x=1.24;P.leaf.v+=5.5;dust(P.x,P.y-2,7,80);grassBits(P.x,P.y,3);}
+  if(jr&&P.vy<-320)P.vy=-320;
+  P.vy=Math.min(P.vy+2300*dt,1150);
+  P.x+=P.vx*dt; P.y+=P.vy*dt; P.x=clamp(P.x,34,WORLD_W-34);
+  if(P.y>=GROUND){P.y=GROUND;
+    if(!P.was){const im=clamp(P.vy/1150,.25,1);P.sx.x=1+.26*im;P.sy.x=1-.28*im;P.leaf.v-=6*im;
+      dust(P.x,P.y-2,(6+8*im)|0,90);grassBits(P.x,P.y,(3+5*im)|0);ringFx(P.x,P.y,.6+im*.7);}
+    P.vy=0;P.ground=true;} else P.ground=false;
+  P.was=P.ground;
+  spring(P.sx,1,210,15,dt); spring(P.sy,1,210,15,dt);
+  spring(P.leaf,clamp(-P.vx*.0009,-.4,.4)+Math.sin(t*2.1)*.06,95,8,dt);
+  if(P.ground&&Math.abs(P.vx)>12){P.runPh+=Math.abs(P.vx)*dt*.052;P.idle=0;
+    if(Math.abs(P.vx)>290){P.dustT-=dt;if(P.dustT<=0){dust(P.x-P.facing*10,P.y-2,1,26,-P.vx*.18);P.dustT=.09;}}} else P.idle+=dt;
+  P.blinkT-=dt; if(P.blinkT<=0){P.blinkT=1.8+Math.random()*2.6;P.blink=1;}
+  P.blink=Math.max(0,P.blink-dt*9);
+  jp=false; jr=false;
+}
+
+// --- helpers dessin ---
+function ell(x,y,rx,ry,col){ctx.fillStyle=col;ctx.beginPath();ctx.ellipse(x,y,Math.max(rx,.1),Math.max(ry,.1),0,0,6.284);ctx.fill();}
+function circ(x,y,r,col){ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,6.284);ctx.fill();}
+function line(x1,y1,x2,y2,w,col){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+function rrect(x,y,w,h,r,col){ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();}
+
+function drawCloud(x,y,s){
+  ell(x,y+8*s,46*s,17*s,'rgba(222,238,250,.92)');
+  circ(x-26*s,y,20*s,'rgba(255,255,255,.95)'); circ(x+2*s,y-11*s,26*s,'rgba(255,255,255,.95)');
+  circ(x+30*s,y,19*s,'rgba(255,255,255,.95)'); ell(x,y,44*s,16*s,'rgba(255,255,255,.95)');
+}
+function drawTree(x,gy,s){
+  ctx.fillStyle='#7a5636'; ctx.fillRect(x-3.5*s,gy-26*s,7*s,28*s);
+  circ(x,gy-42*s,24*s,'#54b260'); circ(x-17*s,gy-30*s,16*s,'#54b260'); circ(x+17*s,gy-30*s,16*s,'#54b260');
+  circ(x-7*s,gy-50*s,9*s,'#6ecd78');
+}
+function drawHills(viewX,par,height,freq,col){
+  ctx.fillStyle=col;
+  for(let sx=-10;sx<VW+10;sx+=10){const wx=viewX*par+sx;
+    const h=height+Math.sin(wx*freq)*height*.32+Math.sin(wx*freq*.37+2.1)*height*.22;
+    ctx.fillRect(viewX+sx,GROUND-h+10,11,h+14); circ(viewX+sx+5,GROUND-h+13,5.5,col);}
+}
+function drawBlades(list,left,t){
+  ctx.lineCap='round';
+  for(const b of list){ if(b.x<left||b.x>left+VW+80)continue;
+    let bend=Math.sin(t*1.7+b.x*.025+b.ph)*3.2+gust(t,b.x);
+    const dx=b.x-P.x;
+    if(Math.abs(dx)<62&&Math.abs(P.y-GROUND)<30){const f=1-Math.abs(dx)/62;bend+=Math.sign(dx===0?P.facing:dx)*f*(7+Math.abs(P.vx)*.028);}
+    ctx.strokeStyle=mix(C.bladeD,C.bladeL,b.sh);
+    ctx.lineWidth=b.th; ctx.beginPath(); ctx.moveTo(b.x,b.baseY);
+    ctx.quadraticCurveTo(b.x+bend*.3,b.baseY-b.h*.6,b.x+bend,b.baseY-b.h); ctx.stroke();}
+}
+function drawWorld(viewX,t){
+  const left=viewX-40;
+  let g=ctx.createLinearGradient(0,0,0,GROUND); g.addColorStop(0,C.skyT); g.addColorStop(1,C.skyB);
+  ctx.fillStyle=g; ctx.fillRect(left,-40,VW+80,GROUND+80);
+  const sunX=viewX+VW*.82, sunY=118;
+  circ(sunX,sunY,74,'rgba(255,226,130,.20)'); circ(sunX,sunY,52,'rgba(255,226,130,.35)');
+  circ(sunX,sunY,38,'#ffe073'); circ(sunX,sunY,32,'#ffeca0');
+  for(const c of clouds) drawCloud(viewX+mod(c.x-viewX*.12,VW+520)-260,c.y,c.s);
+  drawHills(viewX,.25,150,.0038,C.hillsFar);
+  for(const tr of trees){const tx=viewX+mod(tr.x-viewX*.45,VW+300)-150;
+    drawTree(tx,GROUND-58*tr.s-Math.sin((tx+viewX*.45)*.004)*14+18,tr.s);}
+  drawHills(viewX,.55,84,.0052,C.hillsNear);
+  // terre
+  g=ctx.createLinearGradient(0,GROUND,0,VH+60); g.addColorStop(0,C.dirtT); g.addColorStop(1,C.dirtB);
+  ctx.fillStyle=g; ctx.fillRect(left,GROUND,VW+80,VH-GROUND+60);
+  ctx.fillStyle='rgba(0,0,0,.10)'; ctx.fillRect(left,GROUND+52,VW+80,7);
+  ctx.fillStyle='rgba(0,0,0,.13)'; ctx.fillRect(left,GROUND+104,VW+80,9);
+  for(const d of dirtDots){if(d.x<left||d.x>left+VW+80)continue;circ(d.x,d.y,d.r,`rgba(60,40,22,${d.a})`);}
+  for(const s of stones){if(s.x<left||s.x>left+VW+80)continue;ell(s.x,s.y,s.rx,s.ry,'#968e84');ell(s.x-s.rx*.25,s.y-s.ry*.3,s.rx*.55,s.ry*.5,'#aca398');}
+  // rebord d'herbe
+  g=ctx.createLinearGradient(0,GROUND-5,0,GROUND+22); g.addColorStop(0,C.grassT); g.addColorStop(1,C.grassB);
+  ctx.fillStyle=g; ctx.fillRect(left,GROUND-5,VW+80,27);
+  for(let x=Math.floor(left/18)*18;x<left+VW+80;x+=18) circ(x+9,GROUND-4+Math.sin(x*.11)*1.6,9.5,C.grassT);
+  ctx.fillStyle='rgba(0,0,0,.16)'; ctx.fillRect(left,GROUND+20,VW+80,6);
+  for(let x=Math.floor(left/64)*64+20;x<left+VW+80;x+=64){line(x,GROUND+20,x-5,GROUND+36,2.5,'#6e4e30');line(x,GROUND+20,x+6,GROUND+32,2,'#6e4e30');}
+  // pancarte + drapeau
+  (function(){const x=190;ctx.fillStyle='#78502e';ctx.fillRect(x-4,GROUND-52,8,54);
+    const wob=Math.sin(t*1.3); rrect(x-44,GROUND-84+wob,96,36,8,'#96683e');
+    ctx.strokeStyle='#78502e';ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(x-44,GROUND-84+wob,96,36,8);ctx.stroke();
+    ctx.fillStyle='#50341c';ctx.font='700 17px "Segoe UI",sans-serif';ctx.textAlign='center';ctx.fillText('PAR LA ›',x+4,GROUND-60+wob);})();
+  (function(){const x=3020;ctx.fillStyle='#785636';ctx.fillRect(x-3,GROUND-130,6,132);circ(x,GROUND-133,6,'#ffcd46');
+    const w=Math.sin(t*6)*4;ctx.fillStyle='#ff6e5a';ctx.beginPath();
+    ctx.moveTo(x+3,GROUND-128);ctx.lineTo(x+3,GROUND-98);ctx.lineTo(x+30,GROUND-100+w*.5);ctx.lineTo(x+56,GROUND-112+w);
+    ctx.lineTo(x+30,GROUND-120+w*.5);ctx.closePath();ctx.fill();})();
+  drawBlades(bladesBack,left,t);
+  for(const f of flowers){if(f.x<left||f.x>left+VW+80)continue;
+    const sway=Math.sin(t*1.7+f.x*.025+f.ph)*3+gust(t,f.x), hx=f.x+sway, hy=GROUND-12-f.s*2;
+    line(f.x,GROUND+10,hx,hy,2,mix(C.bladeD,C.bladeL,.2));
+    for(let k=0;k<5;k++){const a=k*1.2566+f.ph;circ(hx+Math.cos(a)*f.s*1.15,hy+Math.sin(a)*f.s*1.15,f.s,FLOWER_COLS[f.c]);}
+    circ(hx,hy,f.s*.75,'#ffcd46');}
+  for(const mx of mushrooms){rrect(mx-4,GROUND-8,8,14,3,'#f5ecd8');
+    ctx.fillStyle='#e8564a';ctx.beginPath();ctx.arc(mx,GROUND-7,13,Math.PI,0);ctx.fill();
+    circ(mx-5,GROUND-13,2.2,'#fff');circ(mx+4,GROUND-16,1.8,'#fff');circ(mx+7,GROUND-10,1.4,'#fff');}
+  drawBlades(bladesFront,left,t);
+  for(const m of pollen){if(m.x<left||m.x>left+VW+80)continue;
+    const px=m.x+Math.sin(t*m.sp+m.ph)*16, py=m.y+Math.cos(t*m.sp*.7+m.ph*2)*10;
+    circ(px,py,2,`rgba(255,244,190,${.25+.35*(.5+.5*Math.sin(t*2+m.ph*3))})`);}
+  for(const b of butterflies){const x=b.bx+Math.sin(t*.35+b.ph)*160, y=GROUND-90+Math.sin(t*.9+b.ph*2)*34;
+    const flap=Math.abs(Math.cos(t*16+b.ph)), ww=lerp(2.5,8,flap);
+    ell(x-ww,y-3,ww,5,b.c); ell(x+ww,y-3,ww,5,b.c); line(x,y-5,x,y+5,2.5,'#3c3028');}
+}
+function drawForeground(viewX,t){
+  ctx.lineCap='round'; const par=viewX*1.25;
+  for(let i=0;i<16;i++){const bx=viewX+mod(i*173+60-par,VW+200)-100, h=26+(i%5)*7, bend=Math.sin(t*1.4+i*1.7)*8;
+    line(bx,VH+8,bx+bend*.4,VH+8-h*.6,7,'rgba(38,128,64,.55)'); line(bx+bend*.4,VH+8-h*.6,bx+bend,VH+8-h,5,'rgba(38,128,64,.55)');
+    circ(bx+bend,VH+8-h,3,'rgba(38,128,64,.55)');}
+}
+function drawFoot(x,y,col){ell(x+P.facing*3,y,9.5,5.2,col);ell(x+P.facing*4.5,y-1.6,6.5,3.4,col);}
+function drawEye(x,y,open){ell(x,y,4.5,Math.max(.9,6.2*open),C.eye); if(open>.5)circ(x+P.facing*1.4,y-2.2,1.6,'#fff');}
+function drawArm(cx,cy,bw,bh,back,moving,t,sn){
+  const col=back?C.bodyShade:C.body, side=back?-1:1;
+  const shx=cx+side*P.facing*bw*.30-P.facing*2, shy=cy+bh*.02;
+  let swing; if(!P.ground) swing=P.vy<0?-.9:.55+Math.sin(t*22)*.22;
+  else if(moving) swing=Math.sin(P.runPh+(back?0:Math.PI))*(.35+sn*.45); else swing=Math.sin(t*2.3)*.07;
+  const hx=shx+Math.sin(swing)*13*P.facing+side*P.facing*3, hy=shy+Math.cos(swing)*13-(P.ground?0:4);
+  line(shx,shy,hx,hy,7.5,col); circ(hx,hy,4.4,col);
+}
+function drawScarfTail(cx,cy,bh,t,sn){
+  let px=cx-P.facing*12, py=cy+bh*.08; const nx=px, ny=py;
+  const flutter=2.5+sn*4+(P.ground?0:2.5), lift=clamp(-P.vy*.006,-4,5)-P.vx*P.facing*.004;
+  for(let i=1;i<=4;i++){const x=nx-P.facing*i*11.5, y=ny+i*2.6+Math.sin(t*9-i*1.15)*flutter+lift*i*.4;
+    const col=i%2===0?C.scarf:C.scarfD; line(px,py,x,y,lerp(9.5,4.5,i/4),col); circ(x,y,lerp(5,2.6,i/4),col); px=x;py=y;}
+}
+function drawPlayer(t){
+  const sn=clamp(Math.abs(P.vx)/415,0,1), moving=P.ground&&Math.abs(P.vx)>12;
+  const breathe=(moving||!P.ground)?0:Math.sin(t*2.3)*.022;
+  const bob=moving?Math.abs(Math.sin(P.runPh))*4.2:Math.max(0,Math.sin(t*2.3))*1.1;
+  let sx=P.sx.x*(1-breathe*.6), sy=P.sy.x*(1+breathe);
+  if(!P.ground){const st=clamp(Math.abs(P.vy)/5200,0,.16); sy*=1+st; sx*=1-st*.55;}
+  const bw=48*sx, bh=54*sy, lean=clamp(P.vx*.00038,-.2,.2);
+  const cx=P.x+lean*26, bottomY=P.y-5-bob, cy=bottomY-bh*.5;
+  const hs=clamp(1-(GROUND-P.y)/460,.3,1);
+  ell(P.x,GROUND+9,24*hs,6.5*hs,`rgba(40,90,40,${.35*hs})`);
+  let fA,fB;
+  if(moving){fA=[P.x+Math.cos(P.runPh)*12*P.facing-2,P.y-3-Math.max(0,Math.sin(P.runPh))*8];
+             fB=[P.x+Math.cos(P.runPh+Math.PI)*12*P.facing+2,P.y-3-Math.max(0,Math.sin(P.runPh+Math.PI))*8];}
+  else if(!P.ground){const tk=P.vy<0?13:6; fA=[P.x-9,P.y-tk]; fB=[P.x+10,P.y-tk*.6];}
+  else{fA=[P.x-10,P.y-3]; fB=[P.x+10,P.y-3];}
+  drawFoot(fB[0],fB[1],C.bootD); drawFoot(fA[0],fA[1],C.boot);
+  drawArm(cx,cy,bw,bh,true,moving,t,sn);
+  drawScarfTail(cx,cy,bh,t,sn);
+  ell(cx,cy+2.5,bw*.5,bh*.5,C.bodyShade);
+  ell(cx,cy,bw*.5,bh*.5,C.body);
+  ell(cx+P.facing*3,cy+bh*.17,bw*.29,bh*.24,C.belly);
+  drawArm(cx,cy,bw,bh,false,moving,t,sn);
+  rrect(cx-bw*.34+P.facing*2,cy+bh*.04,bw*.68,11,5.5,C.scarf);
+  rrect(cx-bw*.34+P.facing*2,cy+bh*.04+6,bw*.68,5,2.5,C.scarfD);
+  const faceX=cx+P.facing*9, lookY=P.ground?0:clamp(P.vy*.004,-2.5,3), eyeY=cy-bh*.20+lookY;
+  let open=1-P.blink; if(!P.ground&&P.vy>720)open*=.45;
+  ell(faceX-15,eyeY+8,5.5,3.2,'rgba(255,163,145,.55)'); ell(faceX+15,eyeY+8,5.5,3.2,'rgba(255,163,145,.55)');
+  drawEye(faceX-8.5,eyeY,open); drawEye(faceX+8.5,eyeY,open);
+  if(!P.ground&&P.vy>500) circ(faceX,eyeY+11,3.4,C.eye);
+  else{ctx.strokeStyle=C.eye;ctx.lineWidth=1.9;ctx.lineCap='round';ctx.beginPath();ctx.arc(faceX,eyeY+5,5.5,.45,Math.PI-.45);ctx.stroke();}
+  // pousse sur la tete
+  const topX=cx+lean*34, topY=cy-bh*.48;
+  const stx=topX+Math.sin(P.leaf.x)*12, sty=topY-11+(1-Math.cos(P.leaf.x))*3;
+  line(topX,topY+2,stx,sty,3,C.leafD);
+  ctx.save(); ctx.translate(stx,sty); ctx.rotate(P.leaf.x*.7);
+  ell(-8,-3,9,5,C.leafD); ell(-8,-4,8,4.2,C.leaf); ell(8,-5,10,5.6,C.leafD); ell(8,-6,9,4.8,C.leaf); ctx.restore();
+  circ(stx,sty,2.6,C.leafD);
+}
+function drawHud(t){
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='800 34px "Segoe UI",sans-serif';
+  ctx.fillText('POUSSE !',20,46);
+  ctx.fillStyle='#26402c'; ctx.fillText('POUSSE !',18,43);
+  ctx.font='600 16px "Segoe UI",sans-serif'; ctx.fillStyle='rgba(38,64,44,.75)';
+  ctx.fillText('Fleches / ZQSD : bouger    ESPACE : sauter    MAJ : courir',18,68);
+  ctx.textAlign='right'; ctx.font='600 15px "Segoe UI",sans-serif';
+  ctx.fillText('v0.1.0 - apercu web du .exe',VW-16,VH-14);
+  ctx.textAlign='left';
+}
+
+// --- entrees ---
+const JUMP=['Space','ArrowUp','KeyW','KeyZ'];
+addEventListener('keydown',e=>{ if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+  if(!e.repeat&&JUMP.includes(e.code))jp=true; keys[e.code]=true; });
+addEventListener('keyup',e=>{ if(JUMP.includes(e.code))jr=true; keys[e.code]=false; });
+const touch={L:false,R:false};
+function bindBtn(id,on,off){const el=document.getElementById(id);
+  el.addEventListener('pointerdown',e=>{e.preventDefault();on();}); ['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,off));}
+bindBtn('tL',()=>touch.L=true,()=>touch.L=false);
+bindBtn('tR',()=>touch.R=true,()=>touch.R=false);
+bindBtn('tJ',()=>{jp=true;},()=>{jr=true;});
+cv.addEventListener('pointerdown',()=>cv.focus());
+
+// --- boucle principale ---
+let camX=0, last=performance.now();
+function frame(now){
+  const dt=Math.min((now-last)/1000,.033); last=now;
+  const t=now/1000;
+  for(const c of clouds){c.x+=c.sp*dt; if(c.x>2600)c.x=-260;}
+  updatePlayer(dt,t); updateFx(dt);
+  camX=clamp(damp(camX,P.x-VW*.5+P.facing*55,5.5,dt),0,WORLD_W-VW);
+  ctx.save(); ctx.translate(-camX,0);
+  drawWorld(camX,t); drawFx(); drawPlayer(t); drawForeground(camX,t);
+  ctx.restore(); drawHud(t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

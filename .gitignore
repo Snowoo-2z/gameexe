@@ -1,0 +1,11 @@
+# --- .NET ---
+bin/
+obj/
+dist/
+*.user
+.vs/
+
+# --- Divers ---
+capture*.png
+.DS_Store
+Thumbs.db

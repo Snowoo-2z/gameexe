@@ -1,0 +1,79 @@
+# Publication automatique d'une Release GitHub contenant le .exe.
+#
+# Declencheurs :
+#   - chaque push sur main  -> la release v<version.txt> est (re)publiee
+#   - un tag vX.Y.Z
+#   - manuellement (onglet Actions > Release > Run workflow)
+#
+# C'est cette release que Installer.bat et l'auto-update du jeu
+# vont chercher. Pour sortir une nouvelle version : change le
+# numero dans version.txt, commit, push sur main. C'est tout !
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Lire la version (version.txt)
+        shell: pwsh
+        run: |
+          $v = (Get-Content version.txt -Raw).Trim()
+          "VERSION=$v" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Version : $v"
+
+      - name: Fabriquer GameExe.exe (un seul fichier autonome)
+        shell: pwsh
+        run: >
+          dotnet publish src/GameExe/GameExe.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:Version=$env:VERSION
+          -p:InformationalVersion=$env:VERSION
+          -o dist
+
+      - name: Preparer les fichiers de la release (zip + version.json)
+        shell: pwsh
+        run: |
+          $v = $env:VERSION
+          Compress-Archive -Force -Path dist/GameExe.exe, Installer.bat, Desinstaller.bat -DestinationPath dist/GameExe-win-x64.zip
+          @{ version = $v; exe = 'GameExe.exe'; repo = 'Snowoo-2z/gameexe' } | ConvertTo-Json |
+            Out-File -Encoding utf8 dist/version.json
+          Copy-Item Installer.bat dist/Installer.bat
+          Get-ChildItem dist
+
+      - name: Publier la Release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Pousse ! v${{ env.VERSION }}
+          body: |
+            ## 🎮 Pour jouer (Windows)
+            1. Télécharge **`Installer.bat`** ci-dessous
+            2. Double-clique dessus → le jeu s'installe, un raccourci apparaît sur ton Bureau, et le jeu se Lance
+            3. Les mises à jour sont ensuite **automatiques** : le jeu vérifie au démarrage (touche ENTREE pour appliquer), ou relance `Installer.bat`
+
+            > Tu peux aussi prendre `GameExe.exe` directement : c'est un seul fichier autonome, rien à installer.
+
+            **Contrôles** : flèches / ZQSD pour bouger · ESPACE pour sauter · MAJ pour courir · F plein écran · ECHAP quitter
+          files: |
+            dist/GameExe.exe
+            dist/GameExe-win-x64.zip
+            dist/Installer.bat
+            dist/version.json
+          fail_on_unmatched_files: true

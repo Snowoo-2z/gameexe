@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WinExe = pas de fenetre console derriere le jeu sous Windows -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>GameExe</AssemblyName>
+    <RootNamespace>GameExe</RootNamespace>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <!-- La version est ecrite dans version.txt a la racine du repo.
+         build.bat et GitHub Actions l'injectent ici au moment du build. -->
+    <Version>0.1.0</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Raylib : moteur 2D simple, tout-en-un (fenetre, dessin, clavier) -->
+    <PackageReference Include="Raylib-cs" Version="7.0.2" />
+  </ItemGroup>
+
+</Project>
