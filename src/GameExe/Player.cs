@@ -185,7 +185,7 @@ public class Player
         float heightAbove = World.GroundY - Pos.Y;
         float shadowScale = U.Clamp(1f - heightAbove / 460f, 0.3f, 1f);
         DrawEllipse((int)Pos.X, (int)(World.GroundY + 9), 24f * shadowScale, 6.5f * shadowScale,
-            new Color(40, 90, 40, (byte)(90 * shadowScale)));
+            new Color(40, 90, 40, (int)(90 * shadowScale)));
 
         // --- Pieds (petites bottes animees) ---
         Vector2 footA, footB;
